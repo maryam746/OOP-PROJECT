@@ -1,5 +1,5 @@
 # OOP-PROJECT
-### Rubik's Cube solver
+## Rubik's Cube solver
 
 A Rubik's Cube Solver built with C++ and OpenGL, featuring real-time 3D rendering, interactive cube manipulation, and an automated solving algorithm.
 
@@ -11,7 +11,7 @@ A Rubik's Cube Solver built with C++ and OpenGL, featuring real-time 3D renderin
 
 
 
-## Technologies used:<br>
+### Technologies used:<br>
 **C++** – Core programming language<br>
 
 **OpenGL (GLFW/GLUT)** – Graphics rendering
