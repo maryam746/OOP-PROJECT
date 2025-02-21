@@ -10,5 +10,6 @@ Custom Scramble Generator – Generates random solvable states
 
 
 Technologies used:
-C++ – Core programming language
+C++ – Core programming language<br>
+
 OpenGL (GLFW/GLUT) – Graphics rendering
