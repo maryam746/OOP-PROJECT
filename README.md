@@ -10,7 +10,7 @@ A Rubik's Cube Solver built with C++ and OpenGL, featuring real-time 3D renderin
 
 
 
-##Technologies used:
+#Technologies used:
 <br>
 **C++** – Core programming language<br>
 
