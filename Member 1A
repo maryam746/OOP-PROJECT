@@ -1,0 +1,159 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm> // for std::swap, etc.
+using namespace std;
+
+class RubiksCube {
+private:
+    vector<vector<char>> faces[6]; // 6 faces, each a 3x3 grid
+
+    // Helper function to rotate a row or column
+    void rotateRow(int row, bool clockwise) {
+        vector<char> temp = faces[4][row];  // Store the front face row temporarily
+        if (clockwise) {
+            // Rotate clockwise: shift front, right, back, left
+            for (int i = 0; i < 3; i++) {
+                swap(faces[0][row][i], faces[3][row][2 - i]);
+                swap(faces[2][row][i], faces[1][row][2 - i]);
+            }
+        } else {
+            // Rotate counter-clockwise: shift front, left, back, right
+            for (int i = 0; i < 3; i++) {
+                swap(faces[0][row][i], faces[1][row][2 - i]);
+                swap(faces[2][row][i], faces[3][row][2 - i]);
+            }
+        }
+    }
+
+    // Helper function to rotate a face (90 degrees clockwise)
+    void rotateFace(int face, bool clockwise) {
+        if (clockwise) {
+            // 90 degrees clockwise rotation on a 3x3 face
+            vector<vector<char>> temp = faces[face];
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    faces[face][j][2 - i] = temp[i][j];
+                }
+            }
+        } else {
+            // 90 degrees counter-clockwise rotation on a 3x3 face
+            vector<vector<char>> temp = faces[face];
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    faces[face][2 - j][i] = temp[i][j];
+                }
+            }
+        }
+    }
+
+public:
+    RubiksCube() {
+        char colors[] = { 'W', 'Y', 'R', 'O', 'G', 'B' }; // U, D, R, L, F, B
+        for (int i = 0; i < 6; i++) {
+            faces[i] = vector<vector<char>>(3, vector<char>(3, colors[i]));
+        }
+    }
+
+    void printCube() {
+        string faceNames[] = { "U", "D", "R", "L", "F", "B" };
+        for (int f = 0; f < 6; f++) {
+            cout << faceNames[f] << " face:\n";
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    cout << faces[f][i][j] << ' ';
+                }
+                cout << endl;
+            }
+            cout << endl;
+        }
+    }
+
+    // The rotate function to handle each of the 18 moves
+    void rotate(string move) {
+        if (move == "R") rotateFace(2, true);
+        else if (move == "R'") rotateFace(2, false);
+        else if (move == "R2") { rotate("R"); rotate("R"); }
+
+        else if (move == "L") rotateFace(3, true);
+        else if (move == "L'") rotateFace(3, false);
+        else if (move == "L2") { rotate("L"); rotate("L"); }
+
+        else if (move == "U") rotateFace(0, true);
+        else if (move == "U'") rotateFace(0, false);
+        else if (move == "U2") { rotate("U"); rotate("U"); }
+
+        else if (move == "D") rotateFace(1, true);
+        else if (move == "D'") rotateFace(1, false);
+        else if (move == "D2") { rotate("D"); rotate("D"); }
+
+        else if (move == "F") rotateFace(4, true);
+        else if (move == "F'") rotateFace(4, false);
+        else if (move == "F2") { rotate("F"); rotate("F"); }
+
+        else if (move == "B") rotateFace(5, true);
+        else if (move == "B'") rotateFace(5, false);
+        else if (move == "B2") { rotate("B"); rotate("B"); }
+    }
+
+    // Function to scramble the cube randomly
+    void scramble(int moves) {
+        string validMoves[] = { "R", "R'", "R2", "L", "L'", "L2", "U", "U'", "U2",
+                                "D", "D'", "D2", "F", "F'", "F2", "B", "B'", "B2" };
+        for (int i = 0; i < moves; i++) {
+            int randomMove = rand() % 18;
+            rotate(validMoves[randomMove]);
+        }
+    }
+};
+
+// GameSession class to handle game logic and hints
+class GameSession {
+private:
+    int hintsUsed;
+
+public:
+    GameSession() : hintsUsed(0) {}
+
+    string getHint(RubiksCube currentCube) {
+        if (hintsUsed >= 3) return "No more hints!";
+
+        vector<string> solution = AStarSolver::solve(currentCube); // Recalculate path
+        if (!solution.empty()) {
+            hintsUsed++;
+            return solution[0]; // Return first move of fresh solution
+        } else {
+            return "No solution found!";
+        }
+    }
+
+    int hintsRemaining() {
+        return 3 - hintsUsed;
+    }
+};
+
+int main() {
+    RubiksCube cube;
+    
+    cout << "Initial Cube State:\n";
+    cube.printCube();
+
+    // Scramble the cube with 10 random moves
+    cube.scramble(10);
+    cout << "\nScrambled Cube State:\n";
+    cube.printCube();
+
+    // Perform a few moves
+    cube.rotate("R");
+    cube.rotate("U'");
+    cout << "\nCube after some moves:\n";
+    cube.printCube();
+
+    // Game Session Example (Hints)
+    GameSession session;
+    cout << "\nGetting a hint...\n";
+    cout << session.getHint(cube) << endl; // First hint
+    cout << "Remaining Hints: " << session.hintsRemaining() << endl;
+
+    return 0;
+}
