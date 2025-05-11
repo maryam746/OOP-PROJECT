@@ -41,74 +41,81 @@ void Cube::rotateFace(Face face, Rotation direction) {
     }
     updateAdjacentFaces(face, direction);
 }
+
 void Cube::rotateRow(int row, Rotation direction) {
     try {
         if (row < 0 || row > 2) {
             throw invalid_argument("Invalid row index");
         }
 
-        if (direction == Rotation::CLOCKWISE) {
-            auto frontRow = getRow(Face::FRONT, row);
-            auto rightRow = getRow(Face::RIGHT, row);
-            auto backRow = getRow(Face::BACK, row);
-            auto leftRow = getRow(Face::LEFT, row);
+        auto frontRow = getRow(Face::FRONT, row);
+        auto rightRow = getRow(Face::RIGHT, row);
+        auto backRow = getRow(Face::BACK, row);
+        auto leftRow = getRow(Face::LEFT, row);
 
+        if (direction == Rotation::CLOCKWISE) {
             setRow(Face::FRONT, row, leftRow);
             setRow(Face::RIGHT, row, frontRow);
             setRow(Face::BACK, row, rightRow);
             setRow(Face::LEFT, row, backRow);
         }
         else {
-            auto frontRow = getRow(Face::FRONT, row);
-            auto rightRow = getRow(Face::RIGHT, row);
-            auto backRow = getRow(Face::BACK, row);
-            auto leftRow = getRow(Face::LEFT, row);
-
             setRow(Face::FRONT, row, rightRow);
             setRow(Face::RIGHT, row, backRow);
             setRow(Face::BACK, row, leftRow);
             setRow(Face::LEFT, row, frontRow);
         }
+
+        // Rotate UP or DOWN face if needed
+        if (row == 0) {
+            rotateFace(Face::UP, direction);
+        }
+        else if (row == 2) {
+            rotateFace(Face::DOWN, direction == Rotation::CLOCKWISE ? Rotation::COUNTER_CLOCKWISE : Rotation::CLOCKWISE);
+        }
+
     }
     catch (const invalid_argument& e) {
         cerr << "Error in rotateRow: " << e.what() << endl;
     }
 }
-
 void Cube::rotateColumn(int col, Rotation direction) {
     try {
         if (col < 0 || col > 2) {
             throw invalid_argument("Invalid column index");
         }
 
-        if (direction == Rotation::CLOCKWISE) {
-            auto upCol = getCol(Face::UP, col);
-            auto frontCol = getCol(Face::FRONT, col);
-            auto downCol = getCol(Face::DOWN, col);
-            auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
+        auto upCol = getCol(Face::UP, col);
+        auto frontCol = getCol(Face::FRONT, col);
+        auto downCol = getCol(Face::DOWN, col);
+        auto backCol = getCol(Face::BACK, 2 - col); // BACK is mirrored
 
+        if (direction == Rotation::CLOCKWISE) {
             setCol(Face::UP, col, backCol);
             setCol(Face::FRONT, col, upCol);
             setCol(Face::DOWN, col, frontCol);
-            setCol(Face::BACK, 2 - col, downCol); // Reverse column for BACK face
+            setCol(Face::BACK, 2 - col, downCol);
         }
         else {
-            auto upCol = getCol(Face::UP, col);
-            auto frontCol = getCol(Face::FRONT, col);
-            auto downCol = getCol(Face::DOWN, col);
-            auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
-
             setCol(Face::UP, col, frontCol);
             setCol(Face::FRONT, col, downCol);
             setCol(Face::DOWN, col, backCol);
-            setCol(Face::BACK, 2 - col, upCol); // Reverse column for BACK face
+            setCol(Face::BACK, 2 - col, upCol);
         }
+
+        // Rotate LEFT or RIGHT face if needed
+        if (col == 0) {
+            rotateFace(Face::LEFT, direction == Rotation::CLOCKWISE ? Rotation::COUNTER_CLOCKWISE : Rotation::CLOCKWISE);
+        }
+        else if (col == 2) {
+            rotateFace(Face::RIGHT, direction);
+        }
+
     }
     catch (const invalid_argument& e) {
         cerr << "Error in rotateColumn: " << e.what() << endl;
     }
 }
-
 
 void Cube::scramble() {
     random_device rd;
@@ -296,3 +303,32 @@ void Cube::updateAdjacentFaces(Face face, Rotation direction) {
         break;
     }
 }
+
+
+
+void Cube::applyMove(const std::string& move) {
+    Rotation dir = Rotation::CLOCKWISE;
+    int times = 1;
+
+    std::string baseMove = move;
+
+    if (move.size() > 1) {
+        if (move[1] == '\'') {
+            dir = Rotation::COUNTER_CLOCKWISE;
+        }
+        else if (move[1] == '2') {
+            times = 2;
+        }
+    }
+
+    for (int i = 0; i < times; ++i) {
+        if (baseMove[0] == 'R') rotateColumn(2, dir);
+        else if (baseMove[0] == 'L') rotateColumn(0, dir);
+        else if (baseMove[0] == 'U') rotateRow(0, dir);
+        else if (baseMove[0] == 'D') rotateRow(2, dir);
+        else if (baseMove[0] == 'F') rotateFace(Face::FRONT, dir);
+        else if (baseMove[0] == 'B') rotateFace(Face::BACK, dir);
+    }
+}
+
+
