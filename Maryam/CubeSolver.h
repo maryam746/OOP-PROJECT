@@ -18,13 +18,13 @@ class CubeSolver {
 public:
     CubeSolver(const Cube& initialCube);
     vector<string> solve(const Cube& currentCube);
+    Cube applyMove(const Cube& cube, const string& move);
 
 private:
     Cube start;
 
     int heuristic(const Cube& cube);
     vector<string> getPossibleMoves();
-    Cube applyMove(const Cube& cube, const string& move);
 };
 
 #endif
