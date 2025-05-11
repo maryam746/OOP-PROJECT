@@ -53,7 +53,7 @@ void Renderer::Draw(const Cube& cube) {
 
     EndMode3D();
 
-    DrawText("3D Rubik's Cube - Use mouse to look around", 10, 10, 20, DARKGRAY);
+    DrawText("3D Rubik's Cube - Use mouse to look around", 450, 10, 20, WHITE);
     EndDrawing();
 }
 
