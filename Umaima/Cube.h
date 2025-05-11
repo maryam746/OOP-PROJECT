@@ -4,11 +4,12 @@
 #include <iostream>
 #include <array>
 #include <string>
-using namespace std; // Use the std namespace
+#include <vector>
+using namespace std; 
 
 class Cube {
 public:
-    // Enums for faces, rotations, and colours
+  
     enum class Face {
         FRONT = 0,
         BACK = 1,
@@ -21,64 +22,42 @@ public:
     enum class Rotation { CLOCKWISE, COUNTER_CLOCKWISE };
     enum class Colour { red, orange, green, blue, white, yellow, black };
 
-    // Constructor
+   
     Cube();
 
-    // Public methods
-    void reset(); // Reset the cube to its solved state
-    bool isSolved() const; // Check if the cube is solved
-    void rotateFace(Face face, Rotation direction); // Rotate a face clockwise or counterclockwise
-    void rotateRow(int row, Rotation direction); // Rotate a specific row
-    void rotateColumn(int col, Rotation direction); // Rotate a specific column
-    void scramble(); // Scramble the cube with random rotations
-    Colour getColour(Face face, int row, int col) const; // Get the colour of a specific tile
-    array<array<Colour, 3>, 3> getFace(Face face) const; // Get the colours of a face
+
+    void reset();
+    bool isSolved() const; 
+    void rotateFace(Face face, Rotation direction);
+    void rotateRow(int row, Rotation direction); 
+    void rotateColumn(int col, Rotation direction); 
+    void scramble(); 
+    Colour getColour(Face face, int row, int col) const; 
+    array<array<Colour, 3>, 3> getFace(Face face) const; 
 
 
-
-
-    // Move application interface
     void applyMove(const string& move);
 
-    //// Basic rotation functions
-    //void rotateRight();         // R
-    //void rotateRightInverse();  // R'
-    //void rotateRightDouble();   // R2
+   
 
-    //void rotateLeft();          // L
-    //void rotateLeftInverse();   // L'
-    //void rotateLeftDouble();    // L2
-
-    //void rotateUp();            // U
-    //void rotateUpInverse();     // U'
-    //void rotateUpDouble();      // U2
-
-    //void rotateDown();          // D
-    //void rotateDownInverse();   // D'
-    //void rotateDownDouble();    // D2
-
-    //void rotateFront();         // F
-    //void rotateFrontInverse();  // F'
-    //void rotateFrontDouble();   // F2
-
-    //void rotateBack();          // B
-    //void rotateBackInverse();   // B'
-    //void rotateBackDouble();    // B2
+    void startScrambleSequence();
+    bool isScrambling() const { return !scrambleMoves.empty(); }
+    string getNextScrambleMove();
 
 
 
 private:
-    // Private helper methods
-    void rotateFaceClockwise(Face face); // Rotate a face clockwise
-    void rotateFaceCounterClockwise(Face face); // Rotate a face counterclockwise
-    void updateAdjacentFaces(Face face, Rotation direction); // Update adjacent faces after a face rotation
-    array<Colour, 3> getRow(Face face, int row) const; // Get a row from a face
-    array<Colour, 3> getCol(Face face, int col) const; // Get a column from a face
-    void setRow(Face face, int row, const array<Colour, 3>& colours); // Set a row on a face
-    void setCol(Face face, int col, const array<Colour, 3>& colours); // Set a column on a face
 
-    // Private member variables
-    array<array<array<Colour, 3>, 3>, 6> faces; // 3D array representing the cube's state
+    void rotateFaceClockwise(Face face); 
+    void rotateFaceCounterClockwise(Face face); 
+    void updateAdjacentFaces(Face face, Rotation direction);
+    array<Colour, 3> getRow(Face face, int row) const; 
+    array<Colour, 3> getCol(Face face, int col) const; 
+    void setRow(Face face, int row, const array<Colour, 3>& colours); 
+    void setCol(Face face, int col, const array<Colour, 3>& colours); 
+
+    array<array<array<Colour, 3>, 3>, 6> faces; 
+    vector<string> scrambleMoves;
 };
 
 inline bool operator<(Cube::Colour a, Cube::Colour b) {
@@ -94,4 +73,4 @@ inline bool operator<(const Cube& lhs, const Cube& rhs) {
 }
 
 
-#endif // CUBE_H
+#endif 
