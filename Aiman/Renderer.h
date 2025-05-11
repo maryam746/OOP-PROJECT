@@ -33,4 +33,3 @@ private:
     Camera3D camera;  
     bool windowInitialized = false;  
 };
-
