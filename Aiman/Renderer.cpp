@@ -1,15 +1,15 @@
 #include "Renderer.h"
-#include <array>
-
 #include <iostream>
+#include <cmath>
+
 using namespace std;
 
 Renderer::Renderer() : camera{} {
     // Initialize the camera with default values
-    camera.position = { 0.0f, 0.0f, 0.0f };
-    camera.target = { 0.0f, 0.0f, 0.0f };
-    camera.up = { 0.0f, 0.7f, 0.0f };
-    camera.fovy = 35.0f; // Default field of view
+    camera.position = { 4.0f, 4.0f, 8.0f };  // Camera position
+    camera.target = { 0.0f, 0.0f, 0.0f };   // Look at origin
+    camera.up = { 0.0f, 1.0f, 0.0f };       // Up vector
+    camera.fovy = 50.0f;                     // Field of view
 }
 
 Renderer::~Renderer() {
@@ -18,26 +18,64 @@ Renderer::~Renderer() {
 }
 
 void Renderer::Init() {
-    InitWindow(1280, 720, "3D Rubik's Cube");
+    InitWindow(1280, 950, "3D Rubik's Cube");
     windowInitialized = true;
+
     // Initialize camera looking at origin from positive diagonal
-    camera.position = { 4.0f, 4.0f, 8.0f };  // Camera position
-    camera.target = { 0.0f, 0.0f, 0.0f };     // Look at origin
-    camera.up = { 0.0f, 1.0f, 0.0f };         // Up vector
-    camera.fovy = 35.0f;                     // Field of view
-    // No camera.type assignment due to Camera3D lacking type member
+    //camera.position = { 4.0f, 4.0f, 8.0f };  // Camera position
+    //camera.target = { 0.0f, 0.0f, 0.0f };   // Look at origin
+    //camera.up = { 0.0f, 1.0f, 0.0f };       // Up vector
+    //camera.fovy = 35.0f;                     // Field of view
 
     SetTargetFPS(60);
 }
+
 void Renderer::Close() {
     if (windowInitialized) {
         CloseWindow();
         windowInitialized = false;
     }
 }
+
+void Renderer::UpdateCameraOrbit() {
+    Vector2 mouseDelta = GetMouseDelta();
+
+    // Sensitivity
+    float sensitivity = 0.3f;
+
+    // Update yaw and pitch
+    yaw += mouseDelta.x * sensitivity;
+    pitch -= mouseDelta.y * sensitivity;
+
+    // Clamp pitch to prevent flipping
+    pitch = Clamp(pitch, -89.0f, 89.0f);
+
+    // Convert spherical to Cartesian coordinates
+    float radYaw = DEG2RAD * yaw;
+    float radPitch = DEG2RAD * pitch;
+
+    camera.position.x = cameraDistance * cosf(radPitch) * sinf(radYaw);
+    camera.position.y = cameraDistance * sinf(radPitch);
+    camera.position.z = cameraDistance * cosf(radPitch) * cosf(radYaw);
+
+    camera.target = target;
+    camera.up = { 0.0f, 1.0f, 0.0f };
+}
+
+
+float Renderer::Clamp(float value, float min, float max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+
+
 void Renderer::Draw(const Cube& cube) {
     BeginDrawing();
     ClearBackground(BLACK);
+
+    // Update camera to handle input
+    UpdateCameraOrbit();
 
     BeginMode3D(camera);
 
@@ -53,7 +91,10 @@ void Renderer::Draw(const Cube& cube) {
 
     EndMode3D();
 
-    DrawText("3D Rubik's Cube - Use mouse to look around", 450, 10, 20, WHITE);
+    DrawText("3D Rubik's Cube - By Umaima, Maryam & Aiman", 450, 10, 20, WHITE);
+    DrawText("🖱️  Rotate View: Click & drag mouse", 450, 40, 20, LIGHTGRAY);
+    DrawText("🎯 Rotate Cube Layers: Use arrow keys", 450, 70, 20, LIGHTGRAY);
+
     EndDrawing();
 }
 
@@ -70,6 +111,7 @@ Color Renderer::ConvertColour(Cube::Colour colour) {
         return GRAY; // return a neutral color instead of calling ConvertColour again
     }
 }
+
 void Renderer::DrawCubie(int x, int y, int z, const Cube& cube) {
     const float cubieSize = 0.92f;
     Vector3 position = { (float)x, (float)y, (float)z };
