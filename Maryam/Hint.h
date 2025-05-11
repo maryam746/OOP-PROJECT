@@ -1,22 +1,33 @@
-#ifndef HINTSYSTEM_H
-#define HINTSYSTEM_H
-
+#include <thread>
+#include <atomic>
 #include "Cube.h"
 #include "CubeSolver.h"
+#include <vector>
 
 class HintSystem {
-public:
-    HintSystem(Cube* cube, CubeSolver* solver);
-    string getNextHint();
-    bool canGiveHint() const;
-    void resetHints();
-
 private:
     Cube* cube;
     CubeSolver* solver;
-    vector<string> currentHintSequence;
     int hintsUsed;
     const int maxHints = 3;
-};
 
-#endif
+    // NEW for threading
+    thread solverThread;
+    atomic<bool> solvingInProgress;
+    atomic<bool> solutionReady;
+    string solvingStatus;
+
+public:
+    vector<string> currentHintSequence;
+    HintSystem(Cube* cube, CubeSolver* solver);
+    ~HintSystem();
+
+    bool canGiveHint() const;
+    string getNextHint();
+    void resetHints();
+
+    void startSolving(); // starts solve in background
+    bool isSolving() const;
+    bool isSolutionReady() const;
+    string getSolvingStatus() const;
+};
