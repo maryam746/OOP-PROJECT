@@ -1,3 +1,4 @@
+#pragma once
 #ifndef CUBESOLVER_H
 #define CUBESOLVER_H
 
@@ -7,8 +8,11 @@
 #include <queue>
 #include <unordered_set>
 #include <map>
+#include <iostream>
 
 using namespace std;
+
+
 
 class CubeSolver {
 public:
