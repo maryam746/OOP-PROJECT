@@ -5,7 +5,6 @@
 #include <iostream>
 using namespace std;
 
-
 int main() {
     Renderer renderer;
     renderer.Init();
@@ -15,12 +14,16 @@ int main() {
     HintSystem hintSystem(&cube, &solver);
     GUI gui(&cube, &solver, &hintSystem);
 
-
     while (!WindowShouldClose()) {
-        gui.Update(cube, solver);
-        renderer.Draw(cube);
+        // Pass current camera yaw and pitch to GUI update
+        gui.Update(cube, solver, renderer.getYaw(), renderer.getPitch());
+
+        renderer.Draw(cube);  // You may want to modify Draw to accept animation if you implement animations
+
         gui.Draw();
     }
+
+
 
     renderer.Close();
     return 0;
