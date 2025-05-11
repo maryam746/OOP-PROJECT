@@ -63,4 +63,3 @@ string HintSystem::getNextHint() {
     }
     return "Cube already solved!";
 }
-
