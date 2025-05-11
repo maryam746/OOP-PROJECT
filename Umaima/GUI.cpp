@@ -18,6 +18,7 @@ GUI::GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem)
     statusMessage = "";
     messageTimer = 0;
 }
+
 void GUI::Update(Cube& cube, CubeSolver& solver) {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouse = GetMousePosition();
@@ -57,11 +58,35 @@ void GUI::Update(Cube& cube, CubeSolver& solver) {
                 statusMessage = "Solving the cube...";
             }
             else {
-                statusMessage = "Solution is ready!";
+                vector<string> solutionMoves = solver.solve(cube);  // Solve cube using CubeSolver
+                if (solutionMoves.empty()) {
+                    statusMessage = "No solution found!";
+                }
+                else {
+                    for (const string& move : solutionMoves) {
+                        cube.applyMove(move);  // Apply the move to the cube
+                    }
+                    statusMessage = "Cube solved!";
+                }
             }
             messageTimer = 2.5f;
         }
-
+    }
+    if (IsKeyPressed(KEY_RIGHT)) {
+        // Rotate the cube to the right (around Y-axis)
+        cube.rotateFace(Cube::Face::RIGHT, Cube::Rotation::CLOCKWISE);
+    }
+    if (IsKeyPressed(KEY_LEFT)) {
+        // Rotate the cube to the left (around Y-axis)
+        cube.rotateFace(Cube::Face::LEFT, Cube::Rotation::CLOCKWISE);
+    }
+    if (IsKeyPressed(KEY_UP)) {
+        // Rotate the cube upwards (around X-axis)
+        cube.rotateFace(Cube::Face::UP, Cube::Rotation::CLOCKWISE);
+    }
+    if (IsKeyPressed(KEY_DOWN)) {
+        // Rotate the cube downwards (around X-axis)
+        cube.rotateFace(Cube::Face::DOWN, Cube::Rotation::CLOCKWISE);
     }
 
     // Countdown for message
