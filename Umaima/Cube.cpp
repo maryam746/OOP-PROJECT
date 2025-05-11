@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <random>
+#include <iostream>
+
 using namespace std; // Use the std namespace
 
 Cube::Cube() {
@@ -39,62 +41,74 @@ void Cube::rotateFace(Face face, Rotation direction) {
     }
     updateAdjacentFaces(face, direction);
 }
-
 void Cube::rotateRow(int row, Rotation direction) {
-    if (row < 0 || row > 2) {
-        throw invalid_argument("Invalid row index");
+    try {
+        if (row < 0 || row > 2) {
+            throw invalid_argument("Invalid row index");
+        }
+
+        if (direction == Rotation::CLOCKWISE) {
+            auto frontRow = getRow(Face::FRONT, row);
+            auto rightRow = getRow(Face::RIGHT, row);
+            auto backRow = getRow(Face::BACK, row);
+            auto leftRow = getRow(Face::LEFT, row);
+
+            setRow(Face::FRONT, row, leftRow);
+            setRow(Face::RIGHT, row, frontRow);
+            setRow(Face::BACK, row, rightRow);
+            setRow(Face::LEFT, row, backRow);
+        }
+        else {
+            auto frontRow = getRow(Face::FRONT, row);
+            auto rightRow = getRow(Face::RIGHT, row);
+            auto backRow = getRow(Face::BACK, row);
+            auto leftRow = getRow(Face::LEFT, row);
+
+            setRow(Face::FRONT, row, rightRow);
+            setRow(Face::RIGHT, row, backRow);
+            setRow(Face::BACK, row, leftRow);
+            setRow(Face::LEFT, row, frontRow);
+        }
     }
-
-    if (direction == Rotation::CLOCKWISE) {
-        auto frontRow = getRow(Face::FRONT, row);
-        auto rightRow = getRow(Face::RIGHT, row);
-        auto backRow = getRow(Face::BACK, row);
-        auto leftRow = getRow(Face::LEFT, row);
-
-        setRow(Face::FRONT, row, leftRow);
-        setRow(Face::RIGHT, row, frontRow);
-        setRow(Face::BACK, row, rightRow);
-        setRow(Face::LEFT, row, backRow);
-    } else {
-        auto frontRow = getRow(Face::FRONT, row);
-        auto rightRow = getRow(Face::RIGHT, row);
-        auto backRow = getRow(Face::BACK, row);
-        auto leftRow = getRow(Face::LEFT, row);
-
-        setRow(Face::FRONT, row, rightRow);
-        setRow(Face::RIGHT, row, backRow);
-        setRow(Face::BACK, row, leftRow);
-        setRow(Face::LEFT, row, frontRow);
+    catch (const invalid_argument& e) {
+        cerr << "Error in rotateRow: " << e.what() << endl;
     }
 }
 
 void Cube::rotateColumn(int col, Rotation direction) {
-    if (col < 0 || col > 2) {
-        throw invalid_argument("Invalid column index");
+    try {
+        if (col < 0 || col > 2) {
+            throw invalid_argument("Invalid column index");
+        }
+
+        if (direction == Rotation::CLOCKWISE) {
+            auto upCol = getCol(Face::UP, col);
+            auto frontCol = getCol(Face::FRONT, col);
+            auto downCol = getCol(Face::DOWN, col);
+            auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
+
+            setCol(Face::UP, col, backCol);
+            setCol(Face::FRONT, col, upCol);
+            setCol(Face::DOWN, col, frontCol);
+            setCol(Face::BACK, 2 - col, downCol); // Reverse column for BACK face
+        }
+        else {
+            auto upCol = getCol(Face::UP, col);
+            auto frontCol = getCol(Face::FRONT, col);
+            auto downCol = getCol(Face::DOWN, col);
+            auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
+
+            setCol(Face::UP, col, frontCol);
+            setCol(Face::FRONT, col, downCol);
+            setCol(Face::DOWN, col, backCol);
+            setCol(Face::BACK, 2 - col, upCol); // Reverse column for BACK face
+        }
     }
-
-    if (direction == Rotation::CLOCKWISE) {
-        auto upCol = getCol(Face::UP, col);
-        auto frontCol = getCol(Face::FRONT, col);
-        auto downCol = getCol(Face::DOWN, col);
-        auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
-
-        setCol(Face::UP, col, backCol);
-        setCol(Face::FRONT, col, upCol);
-        setCol(Face::DOWN, col, frontCol);
-        setCol(Face::BACK, 2 - col, downCol); // Reverse column for BACK face
-    } else {
-        auto upCol = getCol(Face::UP, col);
-        auto frontCol = getCol(Face::FRONT, col);
-        auto downCol = getCol(Face::DOWN, col);
-        auto backCol = getCol(Face::BACK, 2 - col); // Reverse column for BACK face
-
-        setCol(Face::UP, col, frontCol);
-        setCol(Face::FRONT, col, downCol);
-        setCol(Face::DOWN, col, backCol);
-        setCol(Face::BACK, 2 - col, upCol); // Reverse column for BACK face
+    catch (const invalid_argument& e) {
+        cerr << "Error in rotateColumn: " << e.what() << endl;
     }
 }
+
 
 void Cube::scramble() {
     random_device rd;
@@ -108,32 +122,45 @@ void Cube::scramble() {
         rotateFace(randomFace, randomDir);
     }
 }
-
 Cube::Colour Cube::getColour(Face face, int row, int col) const {
+    if (row < 0 || row > 2 || col < 0 || col > 2)
+        throw out_of_range("getColour index out of bounds");
+
     return faces[static_cast<int>(face)][row][col];
 }
+
+
+
 
 array<array<Cube::Colour, 3>, 3> Cube::getFace(Face face) const {
     return faces[static_cast<int>(face)];
 }
 
+
+
+
 void Cube::rotateFaceClockwise(Face face) {
     auto& f = faces[static_cast<int>(face)];
-    swap(f[0][0], f[2][0]);
-    swap(f[0][1], f[1][0]);
-    swap(f[0][2], f[0][0]);
-    swap(f[1][2], f[0][1]);
-    swap(f[2][2], f[1][2]);
-    swap(f[2][1], f[2][2]);
-    swap(f[2][0], f[2][1]);
-    swap(f[1][0], f[2][0]);
+    Colour temp = f[0][0];
+    f[0][0] = f[2][0];
+    f[2][0] = f[2][2];
+    f[2][2] = f[0][2];
+    f[0][2] = temp;
+
+    temp = f[0][1];
+    f[0][1] = f[1][0];
+    f[1][0] = f[2][1];
+    f[2][1] = f[1][2];
+    f[1][2] = temp;
 }
+
 
 void Cube::rotateFaceCounterClockwise(Face face) {
     rotateFaceClockwise(face);
     rotateFaceClockwise(face);
     rotateFaceClockwise(face);
 }
+
 
 array<Cube::Colour, 3> Cube::getRow(Face face, int row) const {
     return faces[static_cast<int>(face)][row];
@@ -156,6 +183,116 @@ void Cube::setCol(Face face, int col, const array<Colour, 3>& colours) {
 }
 
 void Cube::updateAdjacentFaces(Face face, Rotation direction) {
-    // Implementation for updating adjacent faces after a face rotation
-    // This is already implemented in your provided code.
+    array<array<Colour, 3>, 4> rows = {};
+
+    auto rotate = [&](array<Colour, 3>& a, array<Colour, 3>& b, array<Colour, 3>& c, array<Colour, 3>& d) {
+        if (direction == Rotation::CLOCKWISE) {
+            swap(a, b);
+            swap(a, c);
+            swap(a, d);
+        }
+        else {
+            swap(a, d);
+            swap(a, c);
+            swap(a, b);
+        }
+        };
+
+    switch (face) {
+    case Face::UP:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::BACK)][0][static_cast<size_t>(2) - static_cast<size_t>(i)];
+            rows[1][i] = faces[static_cast<int>(Face::RIGHT)][0][i];
+            rows[2][i] = faces[static_cast<int>(Face::FRONT)][0][i];
+            rows[3][i] = faces[static_cast<int>(Face::LEFT)][0][static_cast<size_t>(2) - static_cast<size_t>(i)];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::BACK)][0][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[0][i];
+            faces[static_cast<int>(Face::RIGHT)][0][i] = rows[1][i];
+            faces[static_cast<int>(Face::FRONT)][0][i] = rows[2][i];
+            faces[static_cast<int>(Face::LEFT)][0][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[3][i];
+        }
+        break;
+
+    case Face::DOWN:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::BACK)][2][static_cast<size_t>(2) - static_cast<size_t>(i)];
+            rows[1][i] = faces[static_cast<int>(Face::LEFT)][2][static_cast<size_t>(2) - static_cast<size_t>(i)];
+            rows[2][i] = faces[static_cast<int>(Face::FRONT)][2][i];
+            rows[3][i] = faces[static_cast<int>(Face::RIGHT)][2][i];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::BACK)][2][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[0][i];
+            faces[static_cast<int>(Face::LEFT)][2][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[1][i];
+            faces[static_cast<int>(Face::FRONT)][2][i] = rows[2][i];
+            faces[static_cast<int>(Face::RIGHT)][2][i] = rows[3][i];
+        }
+        break;
+
+    case Face::FRONT:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::UP)][2][i];
+            rows[1][i] = faces[static_cast<int>(Face::RIGHT)][i][0];
+            rows[2][i] = faces[static_cast<int>(Face::DOWN)][0][static_cast<size_t>(2) - static_cast<size_t>(i)];
+            rows[3][i] = faces[static_cast<int>(Face::LEFT)][static_cast<size_t>(2) - static_cast<size_t>(i)][2];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::UP)][2][i] = rows[0][i];
+            faces[static_cast<int>(Face::RIGHT)][i][0] = rows[1][i];
+            faces[static_cast<int>(Face::DOWN)][0][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[2][i];
+            faces[static_cast<int>(Face::LEFT)][static_cast<size_t>(2) - static_cast<size_t>(i)][2] = rows[3][i];
+        }
+        break;
+
+    case Face::BACK:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::UP)][0][static_cast<size_t>(2) - static_cast<size_t>(i)];
+            rows[1][i] = faces[static_cast<int>(Face::LEFT)][i][0];
+            rows[2][i] = faces[static_cast<int>(Face::DOWN)][2][i];
+            rows[3][i] = faces[static_cast<int>(Face::RIGHT)][static_cast<size_t>(2) - static_cast<size_t>(i)][2];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::UP)][0][static_cast<size_t>(2) - static_cast<size_t>(i)] = rows[0][i];
+            faces[static_cast<int>(Face::LEFT)][i][0] = rows[1][i];
+            faces[static_cast<int>(Face::DOWN)][2][i] = rows[2][i];
+            faces[static_cast<int>(Face::RIGHT)][static_cast<size_t>(2) - static_cast<size_t>(i)][2] = rows[3][i];
+        }
+        break;
+
+    case Face::LEFT:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::UP)][i][0];
+            rows[1][i] = faces[static_cast<int>(Face::FRONT)][i][0];
+            rows[2][i] = faces[static_cast<int>(Face::DOWN)][i][0];
+            rows[3][i] = faces[static_cast<int>(Face::BACK)][static_cast<size_t>(2) - static_cast<size_t>(i)][2];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::UP)][i][0] = rows[0][i];
+            faces[static_cast<int>(Face::FRONT)][i][0] = rows[1][i];
+            faces[static_cast<int>(Face::DOWN)][i][0] = rows[2][i];
+            faces[static_cast<int>(Face::BACK)][static_cast<size_t>(2) - static_cast<size_t>(i)][2] = rows[3][i];
+        }
+        break;
+
+    case Face::RIGHT:
+        for (int i = 0; i < 3; ++i) {
+            rows[0][i] = faces[static_cast<int>(Face::UP)][i][2];
+            rows[1][i] = faces[static_cast<int>(Face::BACK)][static_cast<size_t>(2) - static_cast<size_t>(i)][0];
+            rows[2][i] = faces[static_cast<int>(Face::DOWN)][i][2];
+            rows[3][i] = faces[static_cast<int>(Face::FRONT)][i][2];
+        }
+        rotate(rows[0], rows[1], rows[2], rows[3]);
+        for (int i = 0; i < 3; ++i) {
+            faces[static_cast<int>(Face::UP)][i][2] = rows[0][i];
+            faces[static_cast<int>(Face::BACK)][static_cast<size_t>(2) - static_cast<size_t>(i)][0] = rows[1][i];
+            faces[static_cast<int>(Face::DOWN)][i][2] = rows[2][i];
+            faces[static_cast<int>(Face::FRONT)][i][2] = rows[3][i];
+        }
+        break;
+    }
 }
