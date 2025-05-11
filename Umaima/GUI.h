@@ -28,7 +28,7 @@ struct RotationAnimation {
 class GUI {
 public:
     GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem);
-    void Update(Cube& cube, CubeSolver& solver);
+    void Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPitch); // Add parameters for camera state
     void Draw();
 
     // Provide animation info getters to Renderer
@@ -50,5 +50,8 @@ private:
     float messageTimer;
     RotationAnimation animation;
 
-    
+    float cameraYaw;
+    float cameraPitch;
+    // New method to map camera view to cube moves
+    std::pair<Cube::Face, int> MapCameraToCubeMove(float yaw);
 };
