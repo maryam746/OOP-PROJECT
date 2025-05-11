@@ -3,23 +3,90 @@ using namespace std;
 
 GUI::GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem)
     : hintSystem(hintSystem) {
-    int btnWidth = 120;
-    int btnHeight = 40;
-    int spacing = 10;
+    int btnWidth = 200;
+    int btnHeight = 60;
+    int spacing = 20;
     int screenWidth = GetScreenWidth();
 
     hintBtn = { (float)spacing, (float)spacing, (float)btnWidth, (float)btnHeight };
     resetBtn = { (float)spacing, (float)(spacing + btnHeight + spacing), (float)btnWidth, (float)btnHeight };
 
-    // Top-right buttons
     scrambleBtn = { (float)(screenWidth - btnWidth - spacing), (float)spacing, (float)btnWidth, (float)btnHeight };
     solveBtn = { (float)(screenWidth - btnWidth - spacing), (float)(spacing + btnHeight + spacing), (float)btnWidth, (float)btnHeight };
 
     statusMessage = "";
     messageTimer = 0;
+
+    animation = {};
+    animation.active = false;
+}
+
+// Attempt to start rotation animation if no animation currently active
+bool GUI::startRotationAnimation(AnimLayerType type, int index, Cube::Rotation direction, Cube::Face face) {
+    if (animation.active) return false; // animation in progress, reject new animation
+
+    animation.type = type;
+    animation.index = index;
+    animation.direction = direction;
+    animation.angle = 0.0f;
+    animation.speed = 360.0f; // degrees per second, can tune this for speed
+    animation.face = face;
+    animation.active = true;
+    return true;
+}
+
+// Apply the actual rotation to cube when animation completes
+void GUI::finishRotationAnimation(Cube& cube) {
+    switch (animation.type) {
+    case AnimLayerType::Row:
+        cube.rotateRow(animation.index, animation.direction);
+        break;
+    case AnimLayerType::Column:
+        cube.rotateColumn(animation.index, animation.direction);
+        break;
+    case AnimLayerType::Face:
+        cube.rotateFace(animation.face, animation.direction);
+        break;
+    default:
+        break;
+    }
+    animation.active = false;
+}
+
+// Key press to move mapping helper
+// Returns true if animation started successfully, false otherwise
+bool handleMoveKeyWithAnim(GUI& gui, Cube& cube, int key, const string& moveName, AnimLayerType animType, int index, Cube::Face face, Cube::Rotation clockwiseDir, Cube::Rotation counterDir) {
+    if (IsKeyPressed(key)) {
+        Cube::Rotation dir = Cube::Rotation::CLOCKWISE;
+        if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
+            dir = Cube::Rotation::COUNTER_CLOCKWISE;
+        }
+
+        if (gui.startRotationAnimation(animType, index, dir, face)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void GUI::Update(Cube& cube, CubeSolver& solver) {
+    float deltaTime = GetFrameTime();
+
+    // Update animation if active
+    if (animation.active) {
+        animation.angle += animation.speed * deltaTime;
+        if (animation.angle >= 90.0f) {
+            // Animation complete
+            finishRotationAnimation(cube);
+            messageTimer = 1.0f;
+        }
+        else {
+            // In-progress animation, block user input for moves
+            return;
+        }
+    }
+
+    // Handle buttons as before
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouse = GetMousePosition();
 
@@ -38,13 +105,13 @@ void GUI::Update(Cube& cube, CubeSolver& solver) {
             messageTimer = 2.0f;
         }
         else if (CheckCollisionPointRec(mouse, resetBtn)) {
-            cube = Cube(); // Resets cube
-            hintSystem->resetHints(); // Reset hint usage
+            cube = Cube(); // Reset cube
+            hintSystem->resetHints();
             statusMessage = "Cube reset and hints cleared!";
             messageTimer = 2.5f;
         }
         else if (CheckCollisionPointRec(mouse, scrambleBtn)) {
-            cube.scramble(); // You assume scramble() is implemented
+            cube.scramble();
             hintSystem->resetHints();
             statusMessage = "Cube scrambled!";
             messageTimer = 2.5f;
@@ -58,13 +125,13 @@ void GUI::Update(Cube& cube, CubeSolver& solver) {
                 statusMessage = "Solving the cube...";
             }
             else {
-                vector<string> solutionMoves = solver.solve(cube);  // Solve cube using CubeSolver
+                vector<string> solutionMoves = solver.solve(cube);
                 if (solutionMoves.empty()) {
                     statusMessage = "No solution found!";
                 }
                 else {
                     for (const string& move : solutionMoves) {
-                        cube.applyMove(move);  // Apply the move to the cube
+                        cube.applyMove(move);
                     }
                     statusMessage = "Cube solved!";
                 }
@@ -72,26 +139,57 @@ void GUI::Update(Cube& cube, CubeSolver& solver) {
             messageTimer = 2.5f;
         }
     }
-    if (IsKeyPressed(KEY_RIGHT)) {
-        // Rotate the cube to the right (around Y-axis)
-        cube.rotateFace(Cube::Face::RIGHT, Cube::Rotation::CLOCKWISE);
+
+    // Now handle key presses for moves with animation
+    // Here, we treat face moves as animating the entire face
+    // For simplicity, we'll do face moves only here
+
+    if (IsKeyPressed(KEY_R)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::RIGHT)) {
+            statusMessage = "Move Applied: R" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
     }
-    if (IsKeyPressed(KEY_LEFT)) {
-        // Rotate the cube to the left (around Y-axis)
-        cube.rotateFace(Cube::Face::LEFT, Cube::Rotation::CLOCKWISE);
+    else if (IsKeyPressed(KEY_L)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::LEFT)) {
+            statusMessage = "Move Applied: L" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
     }
-    if (IsKeyPressed(KEY_UP)) {
-        // Rotate the cube upwards (around X-axis)
-        cube.rotateFace(Cube::Face::UP, Cube::Rotation::CLOCKWISE);
+    else if (IsKeyPressed(KEY_U)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::UP)) {
+            statusMessage = "Move Applied: U" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
     }
-    if (IsKeyPressed(KEY_DOWN)) {
-        // Rotate the cube downwards (around X-axis)
-        cube.rotateFace(Cube::Face::DOWN, Cube::Rotation::CLOCKWISE);
+    else if (IsKeyPressed(KEY_D)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::DOWN)) {
+            statusMessage = "Move Applied: D" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
+    }
+    else if (IsKeyPressed(KEY_F)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::FRONT)) {
+            statusMessage = "Move Applied: F" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
+    }
+    else if (IsKeyPressed(KEY_B)) {
+        Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
+        if (startRotationAnimation(AnimLayerType::Face, -1, dir, Cube::Face::BACK)) {
+            statusMessage = "Move Applied: B" + string(dir == Cube::Rotation::COUNTER_CLOCKWISE ? "'" : "");
+            messageTimer = 1.5f;
+        }
     }
 
-    // Countdown for message
+    // Countdown for message timer
     if (messageTimer > 0) {
-        messageTimer -= GetFrameTime();
+        messageTimer -= deltaTime;
         if (messageTimer <= 0) {
             statusMessage = "";
         }
@@ -104,7 +202,6 @@ void GUI::Draw() {
     DrawButton(scrambleBtn, "Scramble", DARKPURPLE);
     DrawButton(solveBtn, "Solve", DARKBROWN);
 
-    // Draw message at the bottom
     if (!statusMessage.empty()) {
         int fontSize = 20;
         int textWidth = MeasureText(statusMessage.c_str(), fontSize);
@@ -117,7 +214,7 @@ void GUI::Draw() {
 void GUI::DrawButton(Rectangle rect, const char* text, Color bgColor) {
     DrawRectangleRec(rect, bgColor);
     DrawRectangleLinesEx(rect, 2, WHITE);
-    int fontSize = 16;
+    int fontSize = 25;
     int textWidth = MeasureText(text, fontSize);
     DrawText(text,
         rect.x + (rect.width - textWidth) / 2,
