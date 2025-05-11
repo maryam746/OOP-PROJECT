@@ -11,14 +11,14 @@ Cube::Cube() {
 }
 
 void Cube::reset() {
-    faces = {{
+    faces = { {
         {{{Colour::red, Colour::red, Colour::red}, {Colour::red, Colour::red, Colour::red}, {Colour::red, Colour::red, Colour::red}}},
         {{{Colour::orange, Colour::orange, Colour::orange}, {Colour::orange, Colour::orange, Colour::orange}, {Colour::orange, Colour::orange, Colour::orange}}},
         {{{Colour::green, Colour::green, Colour::green}, {Colour::green, Colour::green, Colour::green}, {Colour::green, Colour::green, Colour::green}}},
         {{{Colour::blue, Colour::blue, Colour::blue}, {Colour::blue, Colour::blue, Colour::blue}, {Colour::blue, Colour::blue, Colour::blue}}},
         {{{Colour::white, Colour::white, Colour::white}, {Colour::white, Colour::white, Colour::white}, {Colour::white, Colour::white, Colour::white}}},
         {{{Colour::yellow, Colour::yellow, Colour::yellow}, {Colour::yellow, Colour::yellow, Colour::yellow}, {Colour::yellow, Colour::yellow, Colour::yellow}}}
-    }};
+    } };
 }
 
 bool Cube::isSolved() const {
@@ -36,7 +36,8 @@ bool Cube::isSolved() const {
 void Cube::rotateFace(Face face, Rotation direction) {
     if (direction == Rotation::CLOCKWISE) {
         rotateFaceClockwise(face);
-    } else {
+    }
+    else {
         rotateFaceCounterClockwise(face);
     }
     updateAdjacentFaces(face, direction);
@@ -174,9 +175,9 @@ array<Cube::Colour, 3> Cube::getRow(Face face, int row) const {
 }
 
 array<Cube::Colour, 3> Cube::getCol(Face face, int col) const {
-    return {faces[static_cast<int>(face)][0][col], 
-            faces[static_cast<int>(face)][1][col], 
-            faces[static_cast<int>(face)][2][col]};
+    return { faces[static_cast<int>(face)][0][col],
+            faces[static_cast<int>(face)][1][col],
+            faces[static_cast<int>(face)][2][col] };
 }
 
 void Cube::setRow(Face face, int row, const array<Colour, 3>& colours) {
