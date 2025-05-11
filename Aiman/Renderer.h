@@ -1,9 +1,11 @@
-#ifndef RENDERER_H
-#define RENDERER_H
+#pragma once
 
 #include "Cube.h"
 #include <raylib.h>
 #include <array>
+
+#include <iostream>
+using namespace std;
 
 class Renderer {
 public:
@@ -19,7 +21,7 @@ private:
     Color ConvertColour(Cube::Colour colour);               // Map Cube::Colour enum to raylib Color
 
     Camera3D camera;  // Camera for 3D view
+	bool windowInitialized = false;  // Flag to check if window is initialized
 };
 
-#endif // RENDERER_H
-
+ // RENDERER_H
