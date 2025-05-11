@@ -90,6 +90,7 @@ void Renderer::Draw(const Cube& cube) {
     DrawText("3D Rubik's Cube - By Umaima, Maryam & Aiman", 450, 10, 20, LIGHTGRAY);
     DrawText("Rotate View:Drag mouse", 450, 40, 20, LIGHTGRAY);
     DrawText("Rotate Cube Layers: Use arrow keys", 450, 70, 20, LIGHTGRAY);
+    DrawText("*Front Face is the Red Face*", 450, 150, 20, LIGHTGRAY);
     // Left side move list
     DrawText("Move Controls", 50, 390, 20, RAYWHITE);
     DrawText("U  - Up Clockwise", 30, 425, 20, RAYWHITE);
