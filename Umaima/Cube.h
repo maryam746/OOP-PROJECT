@@ -34,6 +34,39 @@ public:
     Colour getColour(Face face, int row, int col) const; // Get the colour of a specific tile
     array<array<Colour, 3>, 3> getFace(Face face) const; // Get the colours of a face
 
+
+
+
+    // Move application interface
+    void applyMove(const string& move);
+
+    //// Basic rotation functions
+    //void rotateRight();         // R
+    //void rotateRightInverse();  // R'
+    //void rotateRightDouble();   // R2
+
+    //void rotateLeft();          // L
+    //void rotateLeftInverse();   // L'
+    //void rotateLeftDouble();    // L2
+
+    //void rotateUp();            // U
+    //void rotateUpInverse();     // U'
+    //void rotateUpDouble();      // U2
+
+    //void rotateDown();          // D
+    //void rotateDownInverse();   // D'
+    //void rotateDownDouble();    // D2
+
+    //void rotateFront();         // F
+    //void rotateFrontInverse();  // F'
+    //void rotateFrontDouble();   // F2
+
+    //void rotateBack();          // B
+    //void rotateBackInverse();   // B'
+    //void rotateBackDouble();    // B2
+
+
+
 private:
     // Private helper methods
     void rotateFaceClockwise(Face face); // Rotate a face clockwise
