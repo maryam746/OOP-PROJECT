@@ -69,7 +69,29 @@ bool handleMoveKeyWithAnim(GUI& gui, Cube& cube, int key, const string& moveName
     return false;
 }
 
-void GUI::Update(Cube& cube, CubeSolver& solver) {
+std::pair<Cube::Face, int> GUI::MapCameraToCubeMove(float yaw) {
+    // Normalize yaw to [0, 360)
+    float normYaw = fmod((yaw + 360.0f), 360.0f);
+    // Determine which face is currently "front"
+    if (normYaw < 45 || normYaw >= 315) {
+        return { Cube::Face::FRONT, 1 }; // Front face
+    }
+    else if (normYaw >= 45 && normYaw < 135) {
+        return { Cube::Face::RIGHT, 1 }; // Right face
+    }
+    else if (normYaw >= 135 && normYaw < 225) {
+        return { Cube::Face::BACK, 1 }; // Back face
+    }
+    else {
+        return { Cube::Face::LEFT, 1 }; // Left face
+    }
+}
+
+
+void GUI::Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPitch) {
+    this->cameraYaw = cameraYaw; // Store the camera state
+    this->cameraPitch = cameraPitch;
+
     float deltaTime = GetFrameTime();
 
     // Update animation if active
@@ -222,3 +244,4 @@ void GUI::DrawButton(Rectangle rect, const char* text, Color bgColor) {
         fontSize,
         WHITE);
 }
+
