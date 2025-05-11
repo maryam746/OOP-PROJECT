@@ -1,6 +1,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 
+#include <iostream>
 #include <array>
 #include <string>
 using namespace std; // Use the std namespace
@@ -8,7 +9,15 @@ using namespace std; // Use the std namespace
 class Cube {
 public:
     // Enums for faces, rotations, and colours
-    enum class Face { FRONT, BACK, LEFT, RIGHT, UP, DOWN };
+    enum class Face {
+        FRONT = 0,
+        BACK = 1,
+        LEFT = 2,
+        RIGHT = 3,
+        UP = 4,
+        DOWN = 5
+    };
+
     enum class Rotation { CLOCKWISE, COUNTER_CLOCKWISE };
     enum class Colour { red, orange, green, blue, white, yellow, black };
 
@@ -38,5 +47,18 @@ private:
     // Private member variables
     array<array<array<Colour, 3>, 3>, 6> faces; // 3D array representing the cube's state
 };
+
+inline bool operator<(Cube::Colour a, Cube::Colour b) {
+    return static_cast<int>(a) < static_cast<int>(b);
+}
+
+inline bool operator<(Cube::Face a, Cube::Face b) {
+    return static_cast<int>(a) < static_cast<int>(b);
+}
+
+inline bool operator<(const Cube& lhs, const Cube& rhs) {
+    return lhs.getFace(Cube::Face::FRONT) < rhs.getFace(Cube::Face::FRONT);
+}
+
 
 #endif // CUBE_H
