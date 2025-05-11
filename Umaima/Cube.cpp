@@ -4,7 +4,40 @@
 #include <random>
 #include <iostream>
 
-using namespace std; // Use the std namespace
+using namespace std; 
+
+void Cube::startScrambleSequence() {
+    scrambleMoves.clear();
+    const vector<string> moves = { "R", "R'", "L", "L'", "U", "U'", "D", "D'", "F", "F'", "B", "B'" };
+    random_device rd;
+    mt19937 gen(rd());
+
+
+    string lastFace;
+    for (int i = 0; i < 20; i++) {
+        string move;
+        do {
+            move = moves[gen() % moves.size()];
+        } while (!lastFace.empty() && move[0] == lastFace[0]);
+
+        scrambleMoves.push_back(move);
+        lastFace = move.substr(0, 1);
+    }
+
+    reverse(scrambleMoves.begin(), scrambleMoves.end());
+}
+
+
+string Cube::getNextScrambleMove() {
+    if (scrambleMoves.empty()) return "";
+    string move = scrambleMoves.back();
+    scrambleMoves.pop_back();
+    return move;
+}
+
+
+
+
 
 Cube::Cube() {
     reset();
@@ -67,7 +100,7 @@ void Cube::rotateRow(int row, Rotation direction) {
             setRow(Face::LEFT, row, frontRow);
         }
 
-        // Rotate UP or DOWN face if needed
+
         if (row == 0) {
             rotateFace(Face::UP, direction);
         }
@@ -89,7 +122,7 @@ void Cube::rotateColumn(int col, Rotation direction) {
         auto upCol = getCol(Face::UP, col);
         auto frontCol = getCol(Face::FRONT, col);
         auto downCol = getCol(Face::DOWN, col);
-        auto backCol = getCol(Face::BACK, 2 - col); // BACK is mirrored
+        auto backCol = getCol(Face::BACK, 2 - col); 
 
         if (direction == Rotation::CLOCKWISE) {
             setCol(Face::UP, col, backCol);
@@ -104,7 +137,6 @@ void Cube::rotateColumn(int col, Rotation direction) {
             setCol(Face::BACK, 2 - col, upCol);
         }
 
-        // Rotate LEFT or RIGHT face if needed
         if (col == 0) {
             rotateFace(Face::LEFT, direction == Rotation::CLOCKWISE ? Rotation::COUNTER_CLOCKWISE : Rotation::CLOCKWISE);
         }
