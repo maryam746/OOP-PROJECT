@@ -18,6 +18,8 @@ private:
     void DrawButton(Rectangle rect, const char* text, Color bgColor);
     HintSystem* hintSystem;
     string statusMessage;
-
     float messageTimer;
+    bool isDragging = false;
+    Vector2 dragStart = { 0, 0 };
+    Vector2 dragEnd = { 0, 0 };
 };
