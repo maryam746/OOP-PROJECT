@@ -21,7 +21,7 @@ void Renderer::Init() {
     InitWindow(1280, 950, "3D Rubik's Cube");
     windowInitialized = true;
 
-                    
+
     SetTargetFPS(60);
 }
 
@@ -90,6 +90,24 @@ void Renderer::Draw(const Cube& cube) {
     DrawText("3D Rubik's Cube - By Umaima, Maryam & Aiman", 450, 10, 20, LIGHTGRAY);
     DrawText("Rotate View:Drag mouse", 450, 40, 20, LIGHTGRAY);
     DrawText("Rotate Cube Layers: Use arrow keys", 450, 70, 20, LIGHTGRAY);
+    // Left side move list
+    DrawText("Move Controls", 50, 390, 20, RAYWHITE);
+    DrawText("U  - Up Clockwise", 30, 425, 20, RAYWHITE);
+    DrawText("U' - Up Counterclockwise", 30, 450, 20, RAYWHITE);
+    DrawText("D  - Down Clockwise", 30, 475, 20, RAYWHITE);
+    DrawText("D' - Down Counterclockwise", 30, 500, 20, RAYWHITE);
+    DrawText("L  - Left Clockwise", 30, 525, 20, RAYWHITE);
+    DrawText("L' - Left Counterclockwise", 30, 550, 20, RAYWHITE);
+
+    // Right side move list
+    DrawText("Move Control:", 990, 390, 20, RAYWHITE);
+    DrawText("R  - Right Clockwise", 950, 425, 20, RAYWHITE);
+    DrawText("R' - Right Counterclockwise", 950, 450, 20, RAYWHITE);
+    DrawText("F  - Front Clockwise", 950, 475, 20, RAYWHITE);
+    DrawText("F' - Front Counterclockwise", 950, 500, 20, RAYWHITE);
+    DrawText("B  - Back Clockwise", 950, 525, 20, RAYWHITE);
+    DrawText("B' - Back Counterclockwise", 950, 550, 20, RAYWHITE);
+
 
     EndDrawing();
 }
@@ -190,4 +208,3 @@ void Renderer::DrawCubie(int x, int y, int z, const Cube& cube) {
         }
     }
 }
-
