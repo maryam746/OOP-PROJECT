@@ -57,23 +57,23 @@ vector<string> CubeSolver::solve(const Cube& currentCube) {
 
     while (!pq.empty()) {
         auto& [cost, node] = pq.top(); pq.pop();
-        while (!pq.empty()) {  
-           const auto& topElement = pq.top();
-           pq.pop();  
-           int cost = topElement.first;  
-           auto& node = topElement.second;
-           Cube cube = node.first;  
-           vector<string> path = node.second;  
+        while (!pq.empty()) {
+            const auto& topElement = pq.top();
+            pq.pop();
+            int cost = topElement.first;
+            auto& node = topElement.second;
+            Cube cube = node.first;
+            vector<string> path = node.second;
 
-           if (cube.isSolved()) return path;  
-           if (path.size() >= 20) continue;  
+            if (cube.isSolved()) return path;
+            if (path.size() >= 20) continue;
 
-           for (auto& move : getPossibleMoves()) {  
-               Cube next = applyMove(cube, move);  
-               vector<string> nextPath = path;  
-               nextPath.push_back(move);  
-               pq.push({ heuristic(next) + static_cast<int>(nextPath.size()), {next, nextPath} });
-           }  
+            for (auto& move : getPossibleMoves()) {
+                Cube next = applyMove(cube, move);
+                vector<string> nextPath = path;
+                nextPath.push_back(move);
+                pq.push({ heuristic(next) + static_cast<int>(nextPath.size()), {next, nextPath} });
+            }
         }
         Cube cube = node.first;
         vector<string> path = node.second;
