@@ -1,7 +1,6 @@
 #pragma once
 #include "Cube.h"
 #include "CubeSolver.h"
-#include "Hint.h"
 #include <raylib.h>
 #include <iostream>
 #include <string>
@@ -17,41 +16,42 @@ enum class AnimLayerType {
 
 struct RotationAnimation {
     AnimLayerType type = AnimLayerType::None;
-    int index = -1; // row or column index or face
+    int index = -1; 
     Cube::Rotation direction = Cube::Rotation::CLOCKWISE;
-    float angle = 0.0f;    // current angle of rotation in degrees
-    float speed = 180.0f;  // degrees per second
-    Cube::Face face = Cube::Face::FRONT; // for face rotations if needed
+    float angle = 0.0f;   
+    float speed = 180.0f; 
+    Cube::Face face = Cube::Face::FRONT; 
     bool active = false;
 };
 
 class GUI {
 public:
-    GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem);
-    void Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPitch); // Add parameters for camera state
+    GUI(Cube* cube);
+    void Update(Cube& cube); 
     void Draw();
 
-    // Provide animation info getters to Renderer
     bool isAnimating() const { return animation.active; }
     const RotationAnimation& getAnimation() const { return animation; }
 
-    // Start an animation of cube rotation, returns false if animation already running
     bool startRotationAnimation(AnimLayerType type, int index, Cube::Rotation direction, Cube::Face face = Cube::Face::FRONT);
 
-    // Apply the final rotation to the cube once animation ends
     void finishRotationAnimation(Cube& cube);
+    queue<tuple<AnimLayerType, int, Cube::Rotation, Cube::Face>> scrambleQueue;
+    bool isScrambling = false;
+
+    void UpdateScrambleAnimation(Cube& cube, float deltaTime);
 
 
 private:
-    Rectangle hintBtn, resetBtn, scrambleBtn, solveBtn;
+    Rectangle  resetBtn, scrambleBtn;
     void DrawButton(Rectangle rect, const char* text, Color bgColor);
-    HintSystem* hintSystem;
+   
     string statusMessage;
     float messageTimer;
     RotationAnimation animation;
 
-    float cameraYaw;
-    float cameraPitch;
-    // New method to map camera view to cube moves
-    std::pair<Cube::Face, int> MapCameraToCubeMove(float yaw);
+    pair<Cube::Face, int> MapCameraToCubeMove(float yaw);
+  
+    float scrambleTimer = 0.0f;
+    const float scrambleDelay = 0.5f;
 };
