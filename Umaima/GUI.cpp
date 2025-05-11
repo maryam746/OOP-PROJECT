@@ -1,18 +1,19 @@
 #include "GUI.h"
+#include <iostream>
 using namespace std;
 
-GUI::GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem)
-    : hintSystem(hintSystem) {
+vector<string> scrambleMoves;
+
+
+GUI::GUI(Cube* cube) {
     int btnWidth = 200;
     int btnHeight = 60;
     int spacing = 20;
     int screenWidth = GetScreenWidth();
 
-    hintBtn = { (float)spacing, (float)spacing, (float)btnWidth, (float)btnHeight };
-    resetBtn = { (float)spacing, (float)(spacing + btnHeight + spacing), (float)btnWidth, (float)btnHeight };
 
+    resetBtn = { (float)spacing, (float)spacing, (float)btnWidth, (float)btnHeight };
     scrambleBtn = { (float)(screenWidth - btnWidth - spacing), (float)spacing, (float)btnWidth, (float)btnHeight };
-    solveBtn = { (float)(screenWidth - btnWidth - spacing), (float)(spacing + btnHeight + spacing), (float)btnWidth, (float)btnHeight };
 
     statusMessage = "";
     messageTimer = 0;
@@ -21,21 +22,23 @@ GUI::GUI(Cube* cube, CubeSolver* solver, HintSystem* hintSystem)
     animation.active = false;
 }
 
-// Attempt to start rotation animation if no animation currently active
+
 bool GUI::startRotationAnimation(AnimLayerType type, int index, Cube::Rotation direction, Cube::Face face) {
-    if (animation.active) return false; // animation in progress, reject new animation
+    if (animation.active) return false; 
+
 
     animation.type = type;
     animation.index = index;
     animation.direction = direction;
     animation.angle = 0.0f;
-    animation.speed = 360.0f; // degrees per second, can tune this for speed
+    animation.speed = 360.0f; 
+
     animation.face = face;
     animation.active = true;
     return true;
 }
 
-// Apply the actual rotation to cube when animation completes
+
 void GUI::finishRotationAnimation(Cube& cube) {
     switch (animation.type) {
     case AnimLayerType::Row:
@@ -53,9 +56,8 @@ void GUI::finishRotationAnimation(Cube& cube) {
     animation.active = false;
 }
 
-// Key press to move mapping helper
-// Returns true if animation started successfully, false otherwise
-bool handleMoveKeyWithAnim(GUI& gui, Cube& cube, int key, const string& moveName, AnimLayerType animType, int index, Cube::Face face, Cube::Rotation clockwiseDir, Cube::Rotation counterDir) {
+
+static bool handleMoveKeyWithAnim(GUI& gui, Cube& cube, int key, const string& moveName, AnimLayerType animType, int index, Cube::Face face, Cube::Rotation clockwiseDir, Cube::Rotation counterDir) {
     if (IsKeyPressed(key)) {
         Cube::Rotation dir = Cube::Rotation::CLOCKWISE;
         if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
@@ -69,102 +71,104 @@ bool handleMoveKeyWithAnim(GUI& gui, Cube& cube, int key, const string& moveName
     return false;
 }
 
-std::pair<Cube::Face, int> GUI::MapCameraToCubeMove(float yaw) {
-    // Normalize yaw to [0, 360)
+pair<Cube::Face, int> GUI::MapCameraToCubeMove(float yaw) {
+   
     float normYaw = fmod((yaw + 360.0f), 360.0f);
-    // Determine which face is currently "front"
+
     if (normYaw < 45 || normYaw >= 315) {
-        return { Cube::Face::FRONT, 1 }; // Front face
+        return { Cube::Face::FRONT, 1 }; 
     }
     else if (normYaw >= 45 && normYaw < 135) {
-        return { Cube::Face::RIGHT, 1 }; // Right face
+        return { Cube::Face::RIGHT, 1 }; 
     }
     else if (normYaw >= 135 && normYaw < 225) {
-        return { Cube::Face::BACK, 1 }; // Back face
+        return { Cube::Face::BACK, 1 };
     }
     else {
-        return { Cube::Face::LEFT, 1 }; // Left face
+        return { Cube::Face::LEFT, 1 };
     }
 }
 
 
-void GUI::Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPitch) {
-    this->cameraYaw = cameraYaw; // Store the camera state
-    this->cameraPitch = cameraPitch;
-
+void GUI::Update(Cube& cube) {
     float deltaTime = GetFrameTime();
 
-    // Update animation if active
+
     if (animation.active) {
         animation.angle += animation.speed * deltaTime;
         if (animation.angle >= 90.0f) {
-            // Animation complete
+       
             finishRotationAnimation(cube);
             messageTimer = 1.0f;
+            animation.active = false;
         }
-        else {
-            // In-progress animation, block user input for moves
-            return;
+        return; 
+    }
+
+
+    if (isScrambling && !animation.active) {
+        scrambleTimer += deltaTime;
+        if (scrambleTimer >= scrambleDelay) {
+            if (!scrambleQueue.empty()) {
+                auto [type, index, dir, face] = scrambleQueue.front();
+                scrambleQueue.pop();
+                if (startRotationAnimation(type, index, dir, face)) {
+                    scrambleTimer = 0.0f;
+                }
+            }
+            else {
+                isScrambling = false;
+                statusMessage = "Cube scrambled!";
+                messageTimer = 2.5f;
+            }
         }
     }
 
-    // Handle buttons as before
+
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouse = GetMousePosition();
 
-        if (CheckCollisionPointRec(mouse, hintBtn)) {
-            if (hintSystem->isSolving()) {
-                statusMessage = "Still solving...";
-            }
-            else if (!hintSystem->isSolutionReady()) {
-                hintSystem->startSolving();
-                statusMessage = "Solving for hint...";
-            }
-            else {
-                string hint = hintSystem->getNextHint();
-                statusMessage = "Hint: " + hint;
-            }
-            messageTimer = 2.0f;
-        }
-        else if (CheckCollisionPointRec(mouse, resetBtn)) {
-            cube = Cube(); // Reset cube
-            hintSystem->resetHints();
-            statusMessage = "Cube reset and hints cleared!";
+        if (CheckCollisionPointRec(mouse, resetBtn)) {
+            cube = Cube(); 
+            scrambleQueue = {};
+            isScrambling = false;
+            animation.active = false;
+            statusMessage = "Cube reset!";
             messageTimer = 2.5f;
         }
         else if (CheckCollisionPointRec(mouse, scrambleBtn)) {
-            cube.scramble();
-            hintSystem->resetHints();
-            statusMessage = "Cube scrambled!";
-            messageTimer = 2.5f;
-        }
-        else if (CheckCollisionPointRec(mouse, solveBtn)) {
-            if (hintSystem->isSolving()) {
-                statusMessage = "Still solving...";
-            }
-            else if (!hintSystem->isSolutionReady()) {
-                hintSystem->startSolving();
-                statusMessage = "Solving the cube...";
-            }
-            else {
-                vector<string> solutionMoves = solver.solve(cube);
-                if (solutionMoves.empty()) {
-                    statusMessage = "No solution found!";
-                }
-                else {
-                    for (const string& move : solutionMoves) {
-                        cube.applyMove(move);
+            if (!animation.active && !isScrambling) {
+                cube.startScrambleSequence();
+                isScrambling = true;
+                statusMessage = "Scrambling...";
+                messageTimer = 2.5f;
+                scrambleTimer = scrambleDelay; 
+
+
+                while (cube.isScrambling()) {
+                    string move = cube.getNextScrambleMove();
+                    if (!move.empty()) {
+                        Cube::Rotation dir = move.back() == '\'' ?
+                            Cube::Rotation::COUNTER_CLOCKWISE :
+                            Cube::Rotation::CLOCKWISE;
+                        string faceStr = move.substr(0, 1);
+
+                        Cube::Face face;
+                        if (faceStr == "R") face = Cube::Face::RIGHT;
+                        else if (faceStr == "L") face = Cube::Face::LEFT;
+                        else if (faceStr == "U") face = Cube::Face::UP;
+                        else if (faceStr == "D") face = Cube::Face::DOWN;
+                        else if (faceStr == "F") face = Cube::Face::FRONT;
+                        else if (faceStr == "B") face = Cube::Face::BACK;
+                        else continue;
+
+                        scrambleQueue.push({ AnimLayerType::Face, -1, dir, face });
                     }
-                    statusMessage = "Cube solved!";
                 }
             }
-            messageTimer = 2.5f;
         }
     }
 
-    // Now handle key presses for moves with animation
-    // Here, we treat face moves as animating the entire face
-    // For simplicity, we'll do face moves only here
 
     if (IsKeyPressed(KEY_R)) {
         Cube::Rotation dir = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT) ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
@@ -209,7 +213,7 @@ void GUI::Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPi
         }
     }
 
-    // Countdown for message timer
+
     if (messageTimer > 0) {
         messageTimer -= deltaTime;
         if (messageTimer <= 0) {
@@ -219,10 +223,10 @@ void GUI::Update(Cube& cube, CubeSolver& solver, float cameraYaw, float cameraPi
 }
 
 void GUI::Draw() {
-    DrawButton(hintBtn, "Hint", DARKGREEN);
+
     DrawButton(resetBtn, "Reset", DARKBLUE);
     DrawButton(scrambleBtn, "Scramble", DARKPURPLE);
-    DrawButton(solveBtn, "Solve", DARKBROWN);
+
 
     if (!statusMessage.empty()) {
         int fontSize = 20;
@@ -243,5 +247,24 @@ void GUI::DrawButton(Rectangle rect, const char* text, Color bgColor) {
         rect.y + (rect.height - fontSize) / 2,
         fontSize,
         WHITE);
+}
+
+void GUI::UpdateScrambleAnimation(Cube& cube, float deltaTime) {
+    if (!isScrambling) return;
+
+    scrambleTimer += deltaTime;
+    if (scrambleTimer >= scrambleDelay && !animation.active) {
+        if (!scrambleQueue.empty()) {
+            auto [type, index, dir, face] = scrambleQueue.front();
+            scrambleQueue.pop();
+            startRotationAnimation(type, index, dir, face);
+            scrambleTimer = 0.0f; 
+        }
+        else {
+            isScrambling = false;
+            statusMessage = "Cube scrambled!";
+            messageTimer = 2.5f;
+        }
+    }
 }
 
