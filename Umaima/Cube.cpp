@@ -305,30 +305,35 @@ void Cube::updateAdjacentFaces(Face face, Rotation direction) {
 }
 
 
-
-void Cube::applyMove(const std::string& move) {
-    Rotation dir = Rotation::CLOCKWISE;
+void Cube::applyMove(const string& move) {
+    Rotation direction = Rotation::CLOCKWISE;
     int times = 1;
 
-    std::string baseMove = move;
-
+    string baseMove = move;
     if (move.size() > 1) {
         if (move[1] == '\'') {
-            dir = Rotation::COUNTER_CLOCKWISE;
+            direction = Rotation::COUNTER_CLOCKWISE;
+            baseMove = move[0];
         }
         else if (move[1] == '2') {
             times = 2;
+            baseMove = move[0];
         }
     }
 
+    Face face;
+    if (baseMove == "R") face = Face::RIGHT;
+    else if (baseMove == "L") face = Face::LEFT;
+    else if (baseMove == "U") face = Face::UP;
+    else if (baseMove == "D") face = Face::DOWN;
+    else if (baseMove == "F") face = Face::FRONT;
+    else if (baseMove == "B") face = Face::BACK;
+    else {
+        cerr << "Invalid move: " << move << endl;
+        return;
+    }
+
     for (int i = 0; i < times; ++i) {
-        if (baseMove[0] == 'R') rotateColumn(2, dir);
-        else if (baseMove[0] == 'L') rotateColumn(0, dir);
-        else if (baseMove[0] == 'U') rotateRow(0, dir);
-        else if (baseMove[0] == 'D') rotateRow(2, dir);
-        else if (baseMove[0] == 'F') rotateFace(Face::FRONT, dir);
-        else if (baseMove[0] == 'B') rotateFace(Face::BACK, dir);
+        rotateFace(face, direction);
     }
 }
-
-
