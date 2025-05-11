@@ -21,12 +21,7 @@ void Renderer::Init() {
     InitWindow(1280, 950, "3D Rubik's Cube");
     windowInitialized = true;
 
-    // Initialize camera looking at origin from positive diagonal
-    //camera.position = { 4.0f, 4.0f, 8.0f };  // Camera position
-    //camera.target = { 0.0f, 0.0f, 0.0f };   // Look at origin
-    //camera.up = { 0.0f, 1.0f, 0.0f };       // Up vector
-    //camera.fovy = 35.0f;                     // Field of view
-
+                    
     SetTargetFPS(60);
 }
 
@@ -71,6 +66,7 @@ float Renderer::Clamp(float value, float min, float max) {
 
 
 void Renderer::Draw(const Cube& cube) {
+
     BeginDrawing();
     ClearBackground(BLACK);
 
@@ -91,9 +87,9 @@ void Renderer::Draw(const Cube& cube) {
 
     EndMode3D();
 
-    DrawText("3D Rubik's Cube - By Umaima, Maryam & Aiman", 450, 10, 20, WHITE);
-    DrawText("🖱️  Rotate View: Click & drag mouse", 450, 40, 20, LIGHTGRAY);
-    DrawText("🎯 Rotate Cube Layers: Use arrow keys", 450, 70, 20, LIGHTGRAY);
+    DrawText("3D Rubik's Cube - By Umaima, Maryam & Aiman", 450, 10, 20, LIGHTGRAY);
+    DrawText("Rotate View:Drag mouse", 450, 40, 20, LIGHTGRAY);
+    DrawText("Rotate Cube Layers: Use arrow keys", 450, 70, 20, LIGHTGRAY);
 
     EndDrawing();
 }
@@ -194,3 +190,4 @@ void Renderer::DrawCubie(int x, int y, int z, const Cube& cube) {
         }
     }
 }
+
