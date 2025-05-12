@@ -4,7 +4,6 @@ using namespace std;
 
 vector<string> scrambleMoves;
 
-
 GUI::GUI(Cube* cube) {
     int btnWidth = 200;
     int btnHeight = 60;
