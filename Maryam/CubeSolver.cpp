@@ -30,7 +30,7 @@ vector<string> CubeSolver::getPossibleMoves() {
 Cube CubeSolver::applyMove(const Cube& cube, const string& move) {
     Cube newCube = cube;
     Cube::Rotation dir = (move[1] == '\'') ? Cube::Rotation::COUNTER_CLOCKWISE : Cube::Rotation::CLOCKWISE;
-    Cube::Face face = Cube::Face::FRONT; // Initialize with a default value
+    Cube::Face face = Cube::Face::FRONT; 
 
     switch (move[0]) {
     case 'F': face = Cube::Face::FRONT; break;
@@ -41,51 +41,52 @@ Cube CubeSolver::applyMove(const Cube& cube, const string& move) {
     case 'R': face = Cube::Face::RIGHT; break;
     default:
         cerr << "Invalid move: " << move << endl;
-        return newCube; // Return the cube unchanged for invalid moves
+        return newCube; 
     }
 
     newCube.rotateFace(face, dir);
     return newCube;
 }
-
 vector<string> CubeSolver::solve(const Cube& currentCube) {
-    using State = pair<int, Cube>;
-    priority_queue<pair<int, pair<Cube, vector<string>>>, vector<pair<int, pair<Cube, vector<string>>>>, greater<>> pq;
+    using Path = vector<string>;
+    using QueueNode = pair<int, pair<Cube, Path>>;
+
+    auto serializeCube = [](const Cube& cube) {
+        string result;
+        for (int face = 0; face < 6; ++face) {
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {
+                    result += to_string(static_cast<int>(cube.faces[face][i][j]));
+                }
+            }
+        }
+        return result;
+        };
+
+    priority_queue<QueueNode, vector<QueueNode>, greater<>> pq;
     unordered_set<string> visited;
 
     pq.push({ heuristic(currentCube), {currentCube, {}} });
 
     while (!pq.empty()) {
-        auto& [cost, node] = pq.top(); pq.pop();
-        while (!pq.empty()) {
-            const auto& topElement = pq.top();
-            pq.pop();
-            int cost = topElement.first;
-            auto& node = topElement.second;
-            Cube cube = node.first;
-            vector<string> path = node.second;
-
-            if (cube.isSolved()) return path;
-            if (path.size() >= 20) continue;
-
-            for (auto& move : getPossibleMoves()) {
-                Cube next = applyMove(cube, move);
-                vector<string> nextPath = path;
-                nextPath.push_back(move);
-                pq.push({ heuristic(next) + static_cast<int>(nextPath.size()), {next, nextPath} });
-            }
-        }
+        auto [cost, node] = pq.top(); pq.pop();
         Cube cube = node.first;
-        vector<string> path = node.second;
+        Path path = node.second;
+
+        string serialized = serializeCube(cube);
+        if (visited.count(serialized)) continue;
+        visited.insert(serialized);
 
         if (cube.isSolved()) return path;
         if (path.size() >= 20) continue;
 
-        for (auto& move : getPossibleMoves()) {
+        for (const auto& move : getPossibleMoves()) {
             Cube next = applyMove(cube, move);
-            vector<string> nextPath = path;
+            Path nextPath = path;
             nextPath.push_back(move);
-            pq.push({ heuristic(next) + static_cast<int>(nextPath.size()), {next, nextPath} });
+
+            int newCost = heuristic(next) + static_cast<int>(nextPath.size());
+            pq.push({ newCost, {next, nextPath} });
         }
     }
 
