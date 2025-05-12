@@ -35,6 +35,7 @@ public:
     Colour getColour(Face face, int row, int col) const; 
     array<array<Colour, 3>, 3> getFace(Face face) const; 
 
+    array<array<array<Colour, 3>, 3>, 6> faces; 
 
     void applyMove(const string& move);
 
@@ -56,7 +57,6 @@ private:
     void setRow(Face face, int row, const array<Colour, 3>& colours); 
     void setCol(Face face, int col, const array<Colour, 3>& colours); 
 
-    array<array<array<Colour, 3>, 3>, 6> faces; 
     vector<string> scrambleMoves;
 };
 
