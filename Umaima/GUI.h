@@ -1,6 +1,6 @@
 #pragma once
 #include "Cube.h"
-#include "CubeSolver.h"
+#include <queue>
 #include <raylib.h>
 #include <iostream>
 #include <string>
